@@ -9,11 +9,14 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 
 namespace TaskManager.Web
 {
 	public class Startup
 	{
+
+		public const string CookieScheme = "TaskManager";
 		public Startup(IConfiguration configuration)
 		{
 			Configuration = configuration;
@@ -24,15 +27,17 @@ namespace TaskManager.Web
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services.Configure<CookiePolicyOptions>(options =>
+			services.AddAuthentication(CookieScheme).AddCookie(CookieScheme, options =>
 			{
-				// This lambda determines whether user consent for non-essential cookies is needed for a given request.
-				options.CheckConsentNeeded = context => true;
-				options.MinimumSameSitePolicy = SameSiteMode.None;
+				options.AccessDeniedPath = "/account/signUp";
+				options.LoginPath = "/account/login";
 			});
 
+			services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+		.AddJsonOptions(o =>
+			o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
-			services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+			services.AddSignalR();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,9 +53,13 @@ namespace TaskManager.Web
 				app.UseHsts();
 			}
 
-			app.UseHttpsRedirection();
 			app.UseStaticFiles();
-			app.UseCookiePolicy();
+			app.UseAuthentication();
+
+			app.UseSignalR(routes =>
+			{
+				routes.MapHub<ToDoHub>("/toDoHub");
+			});
 
 			app.UseMvc(routes =>
 			{

@@ -2,42 +2,63 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using TaskManager.Data;
 using TaskManager.Web.Models;
 
 namespace TaskManager.Web.Controllers
 {
+	[Authorize]
 	public class HomeController : Controller
 	{
+		private string _connectionString;
+
+		public HomeController(IConfiguration configuration)
+		{
+			_connectionString = configuration.GetConnectionString("ConStr");
+		}
+
 		public IActionResult Index()
 		{
-			return View();
+			ToDoRepository repos = new ToDoRepository(_connectionString);
+			return View(repos.GetIncompleteToDos());
 		}
 
-		public IActionResult About()
+		[HttpPost]
+		public IActionResult AddToDo(String name)
 		{
-			ViewData["Message"] = "Your application description page.";
-
-			return View();
+			ToDoRepository toDoRepos = new ToDoRepository(_connectionString);
+			AccountRepository accountRepos = new AccountRepository(_connectionString);
+			ToDo toDo = new ToDo()
+			{
+				Name = name,
+				ToDoStatus = ToDoStatus.Unclaimed,
+				UserId = accountRepos.GetUserByEmail(User.Identity.Name).Id,
+			};
+			toDoRepos.AddToDo(toDo);
+			toDo.User = accountRepos.GetUserForId(toDo.UserId);
+			return Json(toDo);
 		}
 
-		public IActionResult Contact()
+		[HttpPost]
+		public IActionResult UpdateToDo(int id, ToDoStatus toDoStatus)
 		{
-			ViewData["Message"] = "Your contact page.";
+			ToDoRepository toDoRepos = new ToDoRepository(_connectionString);
+			AccountRepository accountRepos = new AccountRepository(_connectionString);
+			ToDo toDo = toDoRepos.GetToDoForId(id);
+			toDo.ToDoStatus = toDoStatus;
+			toDoRepos.UpdateToDo(toDo);
 
-			return View();
+			return Redirect("/");
 		}
 
-		public IActionResult Privacy()
+		public IActionResult GetIncompleteToDos()
 		{
-			return View();
-		}
-
-		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-		public IActionResult Error()
-		{
-			return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+			ToDoRepository repos = new ToDoRepository(_connectionString);
+			IEnumerable<ToDo> toDos = repos.GetIncompleteToDos();
+			return Json(toDos);
 		}
 	}
 }
