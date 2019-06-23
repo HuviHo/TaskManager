@@ -1,36 +1,37 @@
 ﻿$(() => {
-
-    clearAndPopulateTable();
+    const userId = $("this").data('user-id')
 
     const connection = new signalR.HubConnectionBuilder()
         .withUrl("/toDoHub").build();
 
-    connection.on("addToDoSignalR", () => {
-        clearAndPopulateTable();
+    connection.start().then(() => {
+        connection.invoke("GetAllToDos");
     });
 
-    connection.on("UpdateToDo", () => {
-        clearAndPopulateTable();
-    });
-
-    $("#addToDo").on('click', () => {
-        const name = $("#toDoName").val();
-        $.post("/home/addToDo", { name }, function () {
+    connection.on('RenderToDos', toDos => {
+        $("#toDosTable tr:gt(0)").remove
+        toDos.forEach(toDo => {
+            let buttonHtml;
+            if (toDo.toDoStatus == "Unclaimed") {
+                buttonHtml = `<button class="update-status btn btn-danger btn-block" data-id="${toDo.id}" data-update="start">I'll do this one</button>`
+            }
+            else if (toDo.toDoStatus == "Started" && toDo.user.userId == userId) {
+                buttonHtml = `<button class="update-status btn btn-success btn-block" data-id="${toDo.id}" data-update="complete">I'm done!</button>`
+            }
+            else {
+                buttonHtml = `<button class="update-status btn btn-danger btn-block" id="started" disabled>${toDo.user.firstName} ${toDo.user.lastName} is doing this one</button>`
+            }            
+            $("#toDosTable").append(`<tr><td>${toDo.name}</td><td>${buttonHtml}</td></tr>`)
         });
-        connection.invoke("AddToDoSignalR", { name });
     });
 
-    connection.on("NewToDo", ToDo => {
-        $("#toDosTable").append(
-            `<tr>
-                    <td>${ToDo.name}</td>
-                    <td>
-                       <button class="update-status btn btn-danger btn-block" data-id="${ToDo.id}" data-update="start">I'll do this one</button>
-                    </td>
-                </tr>`);
+    $("#addToDo").on('click', function () {
+        const name = $("#toDoName").val();
+        connection.invoke("AddToDo", { name, userId});
+        $("#toDoName").val('');
     });
-    
-    $(".update-status").on('click', () => {
+
+    $("#toDosTable").on('click', ".update-status", () => {
         const Id = $(".update-status").data('id');
         const CurrentStatus = $(".update-status").data('current-status');
         let toDoStatus = "";
@@ -42,53 +43,6 @@
             toDoStatus = "Completed";
         }
 
-        $.post("/home/updateToDo", { Id, toDoStatus }, function () {
-            clearAndPopulateTable();
-
-            //    if (CurrentStatus === "Unclaimed") {
-            //        console.log('started')
-            //        previouslyClicked.removeClass("btn-tab-success").addClass("btn-warning");  
-            //    }
-            //    else {
-            //        toDoStatus = "Completed";
-            //    }
-
-        });
-        connection.invoke("UpdateToDo");
+        connection.invoke("UpdateToDo", { id, toDoStatus });
     });
-
-    function clearAndPopulateTable() {
-        $("#toDosTable tr:gt(0)").remove();
-        $.get('/home/getIncompleteToDos', function (result) {
-            result.forEach(ToDo => {
-                if (ToDo.toDoStatus == "Unclaimed") {
-                    $("#toDosTable").append(
-                        `<tr>
-                            <td>${ToDo.name}</td>
-                            <td>                                
-                                <button class="update-status btn btn-danger btn-block" data-id="${ToDo.id}" data-update="start">I'll do this one</button>
-                            </td >
-                        </tr >`);
-                }
-                else if (ToDo.toDoStatus == "Started" && ToDo.user.email == '@Context.User.Identity.Name') {
-                    $("#toDosTable").append(
-                        `<tr>
-                            <td>${ToDo.name}</td>
-                            <td>                                
-                                <button class="update-status btn btn-success btn-block" data-id="${ToDo.id}" data-update="complete">I'm done!</button>
-                            </td >
-                        </tr >`);
-                }
-                else {
-                    $("#toDosTable").append(
-                        `<tr>
-                            <td>${ToDo.name}</td>
-                            <td>                                
-                                <button class="update-status btn btn-danger btn-block" id="started" disabled>${ToDo.user.firstName} ${ToDo.user.lastName} is doing this one</button>
-                            </td >
-                        </tr >`);
-                }
-            });
-        });
-    }
 });

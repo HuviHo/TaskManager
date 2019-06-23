@@ -22,43 +22,9 @@ namespace TaskManager.Web.Controllers
 
 		public IActionResult Index()
 		{
-			ToDoRepository repos = new ToDoRepository(_connectionString);
-			return View(repos.GetIncompleteToDos());
-		}
-
-		[HttpPost]
-		public IActionResult AddToDo(String name)
-		{
-			ToDoRepository toDoRepos = new ToDoRepository(_connectionString);
-			AccountRepository accountRepos = new AccountRepository(_connectionString);
-			ToDo toDo = new ToDo()
-			{
-				Name = name,
-				ToDoStatus = ToDoStatus.Unclaimed,
-				UserId = accountRepos.GetUserByEmail(User.Identity.Name).Id,
-			};
-			toDoRepos.AddToDo(toDo);
-			toDo.User = accountRepos.GetUserForId(toDo.UserId);
-			return Json(toDo);
-		}
-
-		[HttpPost]
-		public IActionResult UpdateToDo(int id, ToDoStatus toDoStatus)
-		{
-			ToDoRepository toDoRepos = new ToDoRepository(_connectionString);
-			AccountRepository accountRepos = new AccountRepository(_connectionString);
-			ToDo toDo = toDoRepos.GetToDoForId(id);
-			toDo.ToDoStatus = toDoStatus;
-			toDoRepos.UpdateToDo(toDo);
-
-			return Redirect("/");
-		}
-
-		public IActionResult GetIncompleteToDos()
-		{
-			ToDoRepository repos = new ToDoRepository(_connectionString);
-			IEnumerable<ToDo> toDos = repos.GetIncompleteToDos();
-			return Json(toDos);
-		}
+			AccountRepository repos = new AccountRepository(_connectionString);
+			int userId = repos.GetUserByEmail(User.Identity.Name).Id;
+			return View(userId);
+		}	
 	}
 }
