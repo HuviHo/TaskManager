@@ -1,33 +1,22 @@
-﻿@model int
+﻿@model TaskManager.Web.Models.IndexViewModel
 
-<style>
-    th {
-        text-align: center;
-    }
-</style>
 <div class="row">
-    <div class="col-md-8 col-md-offset-2 well">
-        <div class="col-md-10">
-            <input type="text" name="name" id="toDoName" placeholder="Add a new task" class="form-control" autofocus />
-        </div>
-        <button id="addToDo" data-user-id="@Model" class="btn btn-info">Submit</button>
+    <div class="col-md-10">
+        <input type="text" class="form-control" placeholder="Task Name" id="name" />
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary btn-block" id="submit">Add Task</button>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-8 col-md-offset-2">
-        <table id="toDosTable"class="table table-bordered table-hover table-striped">
-            <tr>
-                <th>Task</th>
-                <th>Status</th>
-            </tr>
+<table class="table table-striped table-bordered" data-user-id="@Model.UserId">
+    <tr>
+        <th>Name</th>
+        <th>Status</th>
+    </tr>
+</table>
 
-           
-        </table>
-    </div>
-</div>
-
-@section Scripts
+@section scripts
     {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aspnet-signalr/1.1.4/signalr.min.js"></script>
     <script src="~/js/Index.js"></script>

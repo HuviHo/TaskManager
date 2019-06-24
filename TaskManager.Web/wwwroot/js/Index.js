@@ -1,5 +1,5 @@
 ﻿$(() => {
-    const userId = $("this").data('user-id')
+    const userId = $("table").data('user-id')
 
     const connection = new signalR.HubConnectionBuilder()
         .withUrl("/toDoHub").build();
@@ -9,40 +9,33 @@
     });
 
     connection.on('RenderToDos', toDos => {
-        $("#toDosTable tr:gt(0)").remove
-        toDos.forEach(toDo => {
+        $("table tr:gt(0)").remove
+        toDos.forEach(t => {
             let buttonHtml;
-            if (toDo.toDoStatus == "Unclaimed") {
-                buttonHtml = `<button class="update-status btn btn-danger btn-block" data-id="${toDo.id}" data-update="start">I'll do this one</button>`
+            if (t.handledBy && t.handledBy === userId) {
+                buttonHtml = `<button data-task-id=${t.id} class='btn btn-success done'>I'm done!</button>`;
+            } else if (t.userDoingIt) {
+                buttonHtml = `<button class='btn btn-warning' disabled>${t.userDoingIt} is doing this</button>`;
+            } else {
+                buttonHtml = `<button data-task-id=${t.id} class='btn btn-info doing'>I'm doing this one!</button>`;
             }
-            else if (toDo.toDoStatus == "Started" && toDo.user.userId == userId) {
-                buttonHtml = `<button class="update-status btn btn-success btn-block" data-id="${toDo.id}" data-update="complete">I'm done!</button>`
-            }
-            else {
-                buttonHtml = `<button class="update-status btn btn-danger btn-block" id="started" disabled>${toDo.user.firstName} ${toDo.user.lastName} is doing this one</button>`
-            }            
-            $("#toDosTable").append(`<tr><td>${toDo.name}</td><td>${buttonHtml}</td></tr>`)
+            $("table").append(`<tr><td>${toDo.name}</td><td>${buttonHtml}</td></tr>`)
         });
     });
 
-    $("#addToDo").on('click', function () {
+    $("#submit").on('click', function () {
         const name = $("#toDoName").val();
-        connection.invoke("AddToDo", { name, userId});
+        connection.invoke("NewTask", name);
         $("#toDoName").val('');
     });
 
-    $("#toDosTable").on('click', ".update-status", () => {
-        const Id = $(".update-status").data('id');
-        const CurrentStatus = $(".update-status").data('current-status');
-        let toDoStatus = "";
+    $("table").on('click', '.done', function() {
+        const id = $(this).data('task-id');
+        connection.invoke("setDone", id);
+    });
 
-        if (CurrentStatus === "Unclaimed") {
-            toDoStatus = "Started";
-        }
-        else {
-            toDoStatus = "Completed";
-        }
-
-        connection.invoke("UpdateToDo", { id, toDoStatus });
+    $("table").on('click', '.doing', function () {
+        const id = $(this).data('task-id');
+        connection.invoke("setDoing", id);
     });
 });

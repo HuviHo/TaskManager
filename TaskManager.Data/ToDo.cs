@@ -8,8 +8,9 @@ namespace TaskManager.Data
 	{
 		public int Id { get; set; }
 		public string Name { get; set; }
-		public ToDoStatus ToDoStatus { get; set; }
-		public int UserId { get; set; }
+		public bool IsCompleted { get; set; }
+		public int? HandledBy { get; set; }
+
 		public User User { get; set; }
 	}
 }

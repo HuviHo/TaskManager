@@ -23,8 +23,15 @@ namespace TaskManager.Web.Controllers
 		public IActionResult Index()
 		{
 			AccountRepository repos = new AccountRepository(_connectionString);
-			int userId = repos.GetUserByEmail(User.Identity.Name).Id;
-			return View(userId);
+			User user = repos.GetUserByEmail(User.Identity.Name);
+			return View(new IndexViewModel { UserId = user.Id });
 		}	
+
+		[AllowAnonymous]
+		public ActionResult GetTask (int id)
+		{
+			ToDoRepository repos = new ToDoRepository(_connectionString);
+			return Json(repos.GetToDoForId(id));
+		}
 	}
 }

@@ -20,32 +20,45 @@ namespace TaskManager.Web
 		public void AddToDo(string name, int userId)
 		{
 			ToDoRepository toDoRepos = new ToDoRepository(_connectionString);
-			AccountRepository accountRepos = new AccountRepository(_connectionString);
-			ToDo toDo = new ToDo()
-			{
-				Name = name,
-				ToDoStatus = ToDoStatus.Unclaimed,
-				UserId= userId
-			};
+			ToDo toDo = new ToDo {Name = name, IsCompleted = false,
+							};
 			toDoRepos.AddToDo(toDo);
-			GetAllToDos();
+			SendTasks();
 		}
 
-		public void UpdateToDo(int id, ToDoStatus toDoStatus)
+		private void SendTasks()
+		{
+			var repos = new ToDoRepository(_connectionString);
+			var tasks = repos.GetActiveToDos();
+			Clients.All.SendAsync("RenderTasks", tasks.Select(t => new
+			{
+				Id = t.Id,
+				Title = t.Name,
+				HandledBy = t.HandledBy,
+				UserDoingIt = t.User != null ? $"{t.User.FirstName} {t.User.LastName}" : null,
+			}));
+		}
+
+		public void GetAll()
+		{
+			SendTasks();
+		}
+
+
+		public void SetDoing(int toDoId)
 		{
 			ToDoRepository toDoRepos = new ToDoRepository(_connectionString);
 			AccountRepository accountRepos = new AccountRepository(_connectionString);
-			ToDo toDo = toDoRepos.GetToDoForId(id);
-			toDo.ToDoStatus = toDoStatus;
-			toDoRepos.UpdateToDo(toDo);
-			GetAllToDos();
+			User user = accountRepos.GetUserByEmail(Context.User.Identity.Name);
+			toDoRepos.SetDoing(toDoId, user.Id);
+			SendTasks();
 		}
 
-		public void GetAllToDos()
+		public void SetDone (int toDoId)
 		{
 			ToDoRepository repos = new ToDoRepository(_connectionString);
-			IEnumerable<ToDo> toDos = repos.GetIncompleteToDos();
-			Clients.All.SendAsync("RenderToDos", toDos);
+			repos.SetCompleted(toDoId);
+			SendTasks();
 		}
 	}
 }
