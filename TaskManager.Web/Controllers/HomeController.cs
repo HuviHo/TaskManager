@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using TaskManager.Data;
@@ -31,7 +27,7 @@ namespace TaskManager.Web.Controllers
 		public ActionResult GetTask (int id)
 		{
 			ToDoRepository repos = new ToDoRepository(_connectionString);
-			return Json(repos.GetToDoForId(id));
+			return Json(repos.GetById(id));
 		}
 	}
 }

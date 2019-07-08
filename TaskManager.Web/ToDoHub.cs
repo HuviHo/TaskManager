@@ -17,10 +17,10 @@ namespace TaskManager.Web
 			_connectionString = configuration.GetConnectionString("ConStr");
 		}
 
-		public void AddToDo(string name, int userId)
+		public void NewToDo(string title)
 		{
 			ToDoRepository toDoRepos = new ToDoRepository(_connectionString);
-			ToDo toDo = new ToDo {Name = name, IsCompleted = false,
+			ToDo toDo = new ToDo {Title = title, IsCompleted = false,
 							};
 			toDoRepos.AddToDo(toDo);
 			SendTasks();
@@ -33,7 +33,7 @@ namespace TaskManager.Web
 			Clients.All.SendAsync("RenderTasks", tasks.Select(t => new
 			{
 				Id = t.Id,
-				Title = t.Name,
+				Title = t.Title,
 				HandledBy = t.HandledBy,
 				UserDoingIt = t.User != null ? $"{t.User.FirstName} {t.User.LastName}" : null,
 			}));

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace TaskManager.Data
 {
-	public class JokesContextFactory : IDesignTimeDbContextFactory<TaskManagerContext>
+	public class TaskItemsContextFactory : IDesignTimeDbContextFactory<TaskManagerContext>
 	{
 		public TaskManagerContext CreateDbContext(string[] args)
 		{

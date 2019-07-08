@@ -33,10 +33,13 @@ namespace TaskManager.Web
 				options.LoginPath = "/account/login";
 			});
 
-			services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
-		.AddJsonOptions(o =>
-			o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
-
+			services.AddMvc()
+			   .AddJsonOptions(options =>
+			   {
+				   options.SerializerSettings.ReferenceLoopHandling =
+					   Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+			   })
+			   .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 			services.AddSignalR();
 		}
 

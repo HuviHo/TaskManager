@@ -1,7 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TaskManager.Data
 {
@@ -17,6 +14,14 @@ namespace TaskManager.Data
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
 			optionsBuilder.UseSqlServer(_connectionString);
+		}
+
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<ToDo>()
+				.HasOne(t => t.User)
+				.WithMany(u => u.ToDos)
+				.HasForeignKey(t => t.HandledBy);
 		}
 
 		public DbSet<User> Users { get; set; }

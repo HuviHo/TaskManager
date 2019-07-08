@@ -5,12 +5,12 @@
         .withUrl("/toDoHub").build();
 
     connection.start().then(() => {
-        connection.invoke("GetAllToDos");
+        connection.invoke("GetAll");
     });
 
-    connection.on('RenderToDos', toDos => {
-        $("table tr:gt(0)").remove
-        toDos.forEach(t => {
+    connection.on('RenderTasks', tasks => {
+        $("table tr:gt(0)").remove();
+        tasks.forEach(t => {
             let buttonHtml;
             if (t.handledBy && t.handledBy === userId) {
                 buttonHtml = `<button data-task-id=${t.id} class='btn btn-success done'>I'm done!</button>`;
@@ -19,14 +19,14 @@
             } else {
                 buttonHtml = `<button data-task-id=${t.id} class='btn btn-info doing'>I'm doing this one!</button>`;
             }
-            $("table").append(`<tr><td>${toDo.name}</td><td>${buttonHtml}</td></tr>`)
+            $("table").append(`<tr><td>${t.title}</td><td>${buttonHtml}</td></tr>`)
         });
     });
 
     $("#submit").on('click', function () {
-        const name = $("#toDoName").val();
-        connection.invoke("NewTask", name);
-        $("#toDoName").val('');
+        const title = $("#title").val();
+        connection.invoke("NewToDo", title);
+        $("#title").val('');
     });
 
     $("table").on('click', '.done', function() {

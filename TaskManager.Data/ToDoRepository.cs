@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using TaskManager.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Data.SqlClient;
 
@@ -44,9 +38,9 @@ namespace TaskManager.Data
 			using (var context = new TaskManagerContext(_connectionString))
 			{
 				context.Database.ExecuteSqlCommand(
-					  "UPDATE ToDos SET HandledBy = @userId WHERE Id = @taskId",
+					  "UPDATE ToDos SET HandledBy = @userId WHERE Id = @toDoId",
 					new SqlParameter("@userId", userId),
-					new SqlParameter("@taskId", toDoId));
+					new SqlParameter("@toDoId", toDoId));
 			}
 		}
 
@@ -55,12 +49,12 @@ namespace TaskManager.Data
 			using (var context = new TaskManagerContext(_connectionString))
 			{
 				context.Database.ExecuteSqlCommand(
-					"UPDATE TaskItems SET IsCompleted = 1 WHERE Id = @taskId",
-					new SqlParameter("@taskId", toDoId));
+					"UPDATE ToDos SET IsCompleted = 1 WHERE Id = @toDoId",
+					new SqlParameter("@toDoId", toDoId));
 			}
 		}
 
-		public ToDo GetToDoForId(int id)
+		public ToDo GetById(int id)
 		{
 			using (var context = new TaskManagerContext(_connectionString))
 			{
